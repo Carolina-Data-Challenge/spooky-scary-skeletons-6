@@ -1,0 +1,343 @@
+---
+title: "Coronavirus Pollution"
+author: ""
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+---
+
+We are using the Health dataset on air pollution across the world. 
+Some of our initial questions are:
+  How has pollution changed over time in relation to covid?
+  Does it continue to vary based on changing policies?
+  Are these trends country specific or region specific?
+  Is there a pattern to where gets the most change in pollution?
+
+Dataset: 
+  Air Pollution: https://openaq.org/#/countries?_k=xqoof4
+  
+Goals:
+  Find if there is a correlation between coronavirus, coronavirus policies, and air pollution. 
+
+```{r message=FALSE}
+library(readr)
+library(tidyverse)
+```
+
+# Data and Methodology
+```{r message=FALSE}
+LosAngeles <- read_csv("laAirset.csv")
+LasVegas <- read_csv("openaq_LV.csv")
+Chicago <- read_csv("openaq_CHI.csv")
+Atlanta <- read_csv("openaq_ATL.csv")
+Charlotte <- read_csv("openaq_CLT.csv")
+NewYork <- read_csv("openaq_NY.csv")
+WashDC <- read_csv("openaq_DC.csv")
+Seattle <- read_csv("openaq_SEA.csv")
+Houston <- read_csv("openaq_HOU.csv")
+Miami <- read_csv("openaq_MIA.csv")
+Denver <- read_csv("openaq_DEN.csv")
+```
+
+Dataset: The datasets aggregate PM2.5, PM10, ozone (O3), sulfur dioxide (SO2), nitrogen dioxide (NO2), carbon monoxide (CO), and black carbon (BC) from "real-time government and research grade sources." We chose to focus on ozone and nitrogen dioxide. Nitrogen dioxide's main source is from the human combustion of fossil fuels, such as the fuel used in cars. Ozone is similarly formed when sunlight reacts to pollutants emitted by cars. Therefore, we decided to focus on these two because the most direct human impacts would be able to be seen. We then chose to study 11 major cities spread throughout the United States to get a larger variety of different location conditions. The cities chosen, in no particular order, were Los Angeles, Los Vegas, Chicago, Atlanta, Charlotte, New York, DC, Seattle, Houston, Miami, and Denver. Within each dataset, there were multiple data points at each location for multiple times throughout the day spanning January 2019 to present. These were averaged by month for each year at each location. Then the difference between 2019 and 2020 was plotted to account for the typical seasonal/monthly changes in pollutant levels. A horizontal line of zero was added to each.
+
+How to Interpret: Each dip in the graph indicates a reduction in pollutants that is more than it usually would be at that time of year. The plot line at zero indicates no change in pollutant levels. While there could be natural changes in pollution levels unrelated to the pandemic, the assumption is that coronavirus was such a large scale event that any minute changes would not be enough to alter the massive trends. Generally, the nationwide response and panic surrounding the coronavirus started in March and these results can be seen as such in the graphs below.
+
+
+# Cities
+### Los Angeles
+Metric: NO2
+```{r message=FALSE}
+LA_US <- LosAngeles %>%
+  select(utc, value)
+LA_US <- LA_US %>%
+  separate(utc, into=c("Date","Hour"),sep=" ",convert=T) %>%
+  separate(Date, into=c("Year","Month","Day"),sep="-",convert=T)
+
+LA_US <- LA_US %>% 
+  group_by(Year,Month) %>% 
+  summarise(mean_value=mean(value)) %>%
+  filter(Year>="2019" & Month<10) %>%
+  ungroup()
+
+LA_US <- LA_US %>%
+  group_by(Month) %>%
+  summarise(diff_value=diff(mean_value))
+write.csv(LA_US, "LAmonthlyChange2019to2020.csv")
+LA_US %>%
+  ggplot(mapping=aes(x=Month, y=diff_value)) + 
+  geom_line() + 
+  geom_point() + 
+  scale_x_continuous(breaks=seq(from=1,to=12, by = 1), labels=c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) +
+  geom_hline(yintercept = 0, color="red") +
+  labs(y="Change in Pollutant Levels (ppm)", title="Los Angeles NO2 Pollutant Level Changes 2019-2020")
+```
+
+### Las Vegas
+Metric: NO2
+```{r message=FALSE}
+LV_US <- LasVegas %>%
+  select(utc, value)
+LV_US <- LV_US %>%
+  separate(utc, into=c("Date","Hour"),sep=" ",convert=T) %>%
+  separate(Date, into=c("Year","Month","Day"),sep="-",convert=T)
+
+LV_US <- LV_US %>% 
+  group_by(Year,Month) %>% 
+  summarise(mean_value=mean(value)) %>%
+  filter(Year>="2019" & Month<10) %>%
+  ungroup()
+
+LV_US <- LV_US %>%
+  group_by(Month) %>%
+  summarise(diff_value=diff(mean_value))
+LV_US %>%
+  ggplot(mapping=aes(x=Month, y=diff_value)) + 
+  geom_line() + 
+  geom_point() + 
+  scale_x_continuous(breaks=seq(from=1,to=12, by = 1), labels=c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) +
+  geom_hline(yintercept = 0, color="red") +
+  labs(y="Change in Pollutant Levels (ppm)", title="Las Vegas NO2 Pollutant Level Changes 2019-2020")
+```
+
+### Chicago
+Metric: O3
+```{r message=FALSE}
+CHI_US <- Chicago %>%
+  select(utc, value)
+CHI_US <- CHI_US %>%
+  separate(utc, into=c("Date","Hour"),sep=" ",convert=T) %>%
+  separate(Date, into=c("Year","Month","Day"),sep="-",convert=T)
+
+CHI_US <- CHI_US %>% 
+  group_by(Year,Month) %>% 
+  summarise(mean_value=mean(value)) %>%
+  filter(Year>="2019" & Month<10) %>%
+  ungroup()
+
+CHI_US <- CHI_US %>%
+  group_by(Month) %>%
+  summarise(diff_value=diff(mean_value))
+CHI_US %>%
+  ggplot(mapping=aes(x=Month, y=diff_value)) + 
+  geom_line() + 
+  geom_point() + 
+  scale_x_continuous(breaks=seq(from=1,to=12, by = 1), labels=c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) +
+  geom_hline(yintercept = 0, color="red") +
+  labs(y="Change in Pollutant Levels (ppm)", title="Chicago O3 Pollutant Level Changes 2019-2020")
+```
+
+### Atlanta
+Metric: NO2
+```{r message=FALSE}
+ATL_US <- Atlanta %>%
+  select(utc, value)
+ATL_US <- ATL_US %>%
+  separate(utc, into=c("Date","Hour"),sep=" ",convert=T) %>%
+  separate(Date, into=c("Year","Month","Day"),sep="-",convert=T)
+
+ATL_US <- ATL_US %>% 
+  group_by(Year,Month) %>% 
+  summarise(mean_value=mean(value)) %>%
+  filter(Year>="2019" & Month<10) %>%
+  ungroup()
+
+ATL_US <- ATL_US %>%
+  group_by(Month) %>%
+  summarise(diff_value=diff(mean_value))
+ATL_US %>%
+  ggplot(mapping=aes(x=Month, y=diff_value)) + 
+  geom_line() + 
+  geom_point() + 
+  scale_x_continuous(breaks=seq(from=1,to=12, by = 1), labels=c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) +
+  geom_hline(yintercept = 0, color="red") +
+  labs(y="Change in Pollutant Levels (ppm)", title="Atlanta NO2 Pollutant Level Changes 2019-2020")
+```
+
+### Charlotte
+Metric: O3
+```{r message=FALSE}
+CLT_US <- Charlotte %>%
+  select(utc, value)
+CLT_US <- CLT_US %>%
+  separate(utc, into=c("Date","Hour"),sep=" ",convert=T) %>%
+  separate(Date, into=c("Year","Month","Day"),sep="-",convert=T)
+
+CLT_US <- CLT_US %>% 
+  group_by(Year,Month) %>% 
+  summarise(mean_value=mean(value)) %>%
+  filter(Year>="2019" & Month<10) %>%
+  ungroup()
+
+CLT_US <- CLT_US %>%
+  group_by(Month) %>%
+  summarise(diff_value=diff(mean_value))
+CLT_US %>%
+  ggplot(mapping=aes(x=Month, y=diff_value)) + 
+  geom_line() + 
+  geom_point() + 
+  scale_x_continuous(breaks=seq(from=1,to=12, by = 1), labels=c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) +
+  geom_hline(yintercept = 0, color="red") +
+  labs(y="Change in Pollutant Levels (ppm)", title="Charlotte O3 Pollutant Level Changes 2019-2020")
+```
+
+### New York
+Metric: NO2
+```{r message=FALSE}
+NY_US <- NewYork %>%
+  select(utc, value)
+NY_US <- NY_US %>%
+  separate(utc, into=c("Date","Hour"),sep=" ",convert=T) %>%
+  separate(Date, into=c("Year","Month","Day"),sep="-",convert=T)
+
+NY_US <- NY_US %>% 
+  group_by(Year,Month) %>% 
+  summarise(mean_value=mean(value)) %>%
+  filter(Year>="2019" & Month<10) %>%
+  ungroup()
+
+NY_US <- NY_US %>%
+  group_by(Month) %>%
+  summarise(diff_value=diff(mean_value))
+NY_US %>%
+  ggplot(mapping=aes(x=Month, y=diff_value)) + 
+  geom_line() + 
+  geom_point() + 
+  scale_x_continuous(breaks=seq(from=1,to=12, by = 1), labels=c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) +
+  geom_hline(yintercept = 0, color="red") +
+  labs(y="Change in Pollutant Levels (ppm)", title="New York NO2 Pollutant Level Changes 2019-2020")
+```
+
+### Washington DC
+Metric: NO2
+```{r message=FALSE}
+DC_US <- WashDC %>%
+  select(utc, value)
+DC_US <- DC_US %>%
+  separate(utc, into=c("Date","Hour"),sep=" ",convert=T) %>%
+  separate(Date, into=c("Year","Month","Day"),sep="-",convert=T)
+
+DC_US <- DC_US %>% 
+  group_by(Year,Month) %>% 
+  summarise(mean_value=mean(value)) %>%
+  filter(Year>="2019" & Month<10) %>%
+  ungroup()
+
+DC_US <- DC_US %>%
+  group_by(Month) %>%
+  summarise(diff_value=diff(mean_value))
+DC_US %>%
+  ggplot(mapping=aes(x=Month, y=diff_value)) + 
+  geom_line() + 
+  geom_point() + 
+  scale_x_continuous(breaks=seq(from=1,to=12, by = 1), labels=c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) +
+  geom_hline(yintercept = 0, color="red") +
+  labs(y="Change in Pollutant Levels (ppm)", title="Washington DC NO2 Pollutant Level Changes 2019-2020")
+```
+
+### Seattle
+Metric: NO2
+```{r message=FALSE}
+SEA_US <- Seattle %>%
+  select(utc, value)
+SEA_US <- SEA_US %>%
+  separate(utc, into=c("Date","Hour"),sep=" ",convert=T) %>%
+  separate(Date, into=c("Year","Month","Day"),sep="-",convert=T)
+
+SEA_US <- SEA_US %>% 
+  group_by(Year,Month) %>% 
+  summarise(mean_value=mean(value)) %>%
+  filter(Year>="2019" & Month<10) %>%
+  ungroup()
+
+SEA_US <- SEA_US %>%
+  group_by(Month) %>%
+  summarise(diff_value=diff(mean_value))
+SEA_US %>%
+  ggplot(mapping=aes(x=Month, y=diff_value)) + 
+  geom_line() + 
+  geom_point() + 
+  scale_x_continuous(breaks=seq(from=1,to=12, by = 1), labels=c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) +
+  geom_hline(yintercept = 0, color="red") +
+  labs(y="Change in Pollutant Levels (ppm)", title="Seattle NO2 Pollutant Level Changes 2019-2020")
+```
+
+### Houston
+Metric: O3
+```{r message=FALSE}
+HOU_US <- Houston %>%
+  select(utc, value)
+HOU_US <- HOU_US %>%
+  separate(utc, into=c("Date","Hour"),sep=" ",convert=T) %>%
+  separate(Date, into=c("Year","Month","Day"),sep="-",convert=T)
+
+HOU_US <- HOU_US %>% 
+  group_by(Year,Month) %>% 
+  summarise(mean_value=mean(value)) %>%
+  filter(Year>="2019" & Month<10) %>%
+  ungroup()
+
+HOU_US <- HOU_US %>%
+  group_by(Month) %>%
+  summarise(diff_value=diff(mean_value))
+HOU_US %>%
+  ggplot(mapping=aes(x=Month, y=diff_value)) + 
+  geom_line() + 
+  geom_point() + 
+  scale_x_continuous(breaks=seq(from=1,to=12, by = 1), labels=c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) +
+  geom_hline(yintercept = 0, color="red") +
+  labs(y="Change in Pollutant Levels (ppm)", title="Houston O3 Pollutant Level Changes 2019-2020")
+```
+
+### Miami
+Metric: O3
+```{r message=FALSE}
+MIA_US <- Miami %>%
+  select(utc, value)
+MIA_US <- MIA_US %>%
+  separate(utc, into=c("Date","Hour"),sep=" ",convert=T) %>%
+  separate(Date, into=c("Year","Month","Day"),sep="-",convert=T)
+
+MIA_US <- MIA_US %>% 
+  group_by(Year,Month) %>% 
+  summarise(mean_value=mean(value)) %>%
+  filter(Year>="2019" & Month<10) %>%
+  ungroup()
+
+MIA_US <- MIA_US %>%
+  group_by(Month) %>%
+  summarise(diff_value=diff(mean_value))
+MIA_US %>%
+  ggplot(mapping=aes(x=Month, y=diff_value)) + 
+  geom_line() + 
+  geom_point() + 
+  scale_x_continuous(breaks=seq(from=1,to=12, by = 1), labels=c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) +
+  geom_hline(yintercept = 0, color="red") +
+  labs(y="Change in Pollutant Levels (ppm)", title="Miami O3 Pollutant Level Changes 2019-2020")
+```
+
+### Denver
+Metric: NO2
+```{r message=FALSE}
+DEN_US <- Denver %>%
+  select(utc, value)
+DEN_US <- DEN_US %>%
+  separate(utc, into=c("Date","Hour"),sep=" ",convert=T) %>%
+  separate(Date, into=c("Year","Month","Day"),sep="-",convert=T)
+
+DEN_US <- DEN_US %>% 
+  group_by(Year,Month) %>% 
+  summarise(mean_value=mean(value)) %>%
+  filter(Year>="2019" & Month<10) %>%
+  ungroup()
+
+DEN_US <- DEN_US %>%
+  group_by(Month) %>%
+  summarise(diff_value=diff(mean_value))
+DEN_US %>%
+  ggplot(mapping=aes(x=Month, y=diff_value)) + 
+  geom_line() + 
+  geom_point() + 
+  scale_x_continuous(breaks=seq(from=1,to=12, by = 1), labels=c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) +
+  geom_hline(yintercept = 0, color="red") +
+  labs(y="Change in Pollutant Levels (ppm)", title="Denver NO2 Pollutant Level Changes 2019-2020")
+```
