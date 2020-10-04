@@ -9,7 +9,7 @@ Specifically, to submit your project you will be required to complete the follow
 
 ---
 
-**PASTE PUBLIC VIDEO LINK HERE: https://arjakaushal.wixsite.com/cdccovidairpollution**
+**PASTE PUBLIC VIDEO LINK HERE: **
 
 ---
 
